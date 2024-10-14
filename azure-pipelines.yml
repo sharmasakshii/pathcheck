@@ -42,23 +42,11 @@ stages:
           - upload: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
             artifact: drop
 
-  - stage: Deploy
-    displayName: Deploy stage
-    jobs:
-      - deployment: Deploy
-        displayName: Deploy
-        environment: DEMO
-        pool:
-          vmImage: ubuntu-latest
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureFunctionApp@1
-                  displayName: 'Azure Functions App Deploy: $(FUNCTION_APP_NAME)'
-                  inputs:
-                    azureSubscription: 'Free Trial(1)(3e3c63cc-eef2-4386-9f86-ea6a77a47519)'
-                    appType: 'functionApp'
-                    appName: 'forpathtesting'
-                    package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
-                    deploymentMethod: 'auto'
+          - task: AzureFunctionApp@1
+            displayName: 'Azure Functions App Deploy: $(FUNCTION_APP_NAME)'
+            inputs:
+              azureSubscription: 'Free Trial(1)(3e3c63cc-eef2-4386-9f86-ea6a77a47519)'
+              appType: 'functionApp'
+              appName: 'forpathtesting'
+              package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+              deploymentMethod: 'auto'

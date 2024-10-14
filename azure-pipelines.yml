@@ -30,23 +30,10 @@ stages:
               npm run build
             displayName: 'npm install and build'
 
-          - task: ArchiveFiles@2
-            displayName: 'Archive files'
+          # Deploy to Azure Static Web App
+          - task: AzureStaticWebApp@0
             inputs:
-              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-              includeRootFolder: false
-              archiveType: zip
-              archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-              replaceExistingArchive: true
-
-          - upload: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-            artifact: drop
-
-          - task: AzureFunctionApp@1
-            displayName: 'Azure Functions App Deploy: $(FUNCTION_APP_NAME)'
-            inputs:
-              azureSubscription: 'Free Trial(1)(3e3c63cc-eef2-4386-9f86-ea6a77a47519)'
-              appType: 'functionApp'
-              appName: 'forpathtesting'
-              package: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-              deploymentMethod: 'auto'
+              app_location: 'myapp2'  # The folder where your app is located
+              output_location: 'build'  # The folder where the build output is located
+              azure_static_web_apps_api_token: 'a91adb19a7e1f7d199b456f26d55e97080daea25e97e769c527383b6385cfc1d5-46c3b62b-5df6-43ab-bca4-a0cdc8a2b3c300f398616'
+            displayName: 'Deploy to Azure Static Web App'

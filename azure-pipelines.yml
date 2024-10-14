@@ -9,31 +9,56 @@ trigger:
 pool:
   vmImage: 'windows-latest'
 
-steps:
-  - task: NodeTool@0
-    inputs:
-      versionSpec: '20.x'
-    displayName: 'Install Node.js'
+stages:
+  - stage: BUILD
+    displayName: Build stage
+    jobs:
+      - job: Build
+        displayName: Build
+        pool:
+          vmImage: ubuntu-latest
 
-  - script: |
-      cd myapp2
-      npm install
-      npm run build
-    displayName: 'npm install and build'
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '18.x'
+            displayName: 'Install Node.js'
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: '$(Build.SourcesDirectory)/myapp2/build'
-      includeRootFolder: false
-      archiveType: 'zip'
-      archiveFile: '$(Build.ArtifactStagingDirectory)/myapp2_build_$(Build.BuildId).zip'
-      replaceExistingArchive: true
-    displayName: 'Archive build artifacts'
+          - script: |
+              cd myapp2
+              npm install
+              npm run build
+            displayName: 'npm install and build'
 
-  - task: AzureFunctionApp@2
-    inputs:
-      connectedServiceNameARM: 'Free Trial(3e3c63cc-eef2-4386-9f86-ea6a77a47519)'
-      appType: 'functionApp'
-      appName: 'forpathtesting'
-      package: '$(Build.ArtifactStagingDirectory)/myapp2_build_$(Build.BuildId).zip'
-      deploymentMethod: 'auto'
+          - task: ArchiveFiles@2
+            displayName: 'Archive files'
+            inputs:
+              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+              includeRootFolder: false
+              archiveType: zip
+              archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+              replaceExistingArchive: true
+
+          - upload: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+            artifact: drop
+
+  - stage: Deploy
+    displayName: Deploy stage
+    jobs:
+      - deployment: Deploy
+        displayName: Deploy
+        environment: DEMO
+        pool:
+          vmImage: ubuntu-latest
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureFunctionApp@1
+                  displayName: 'Azure Functions App Deploy: $(FUNCTION_APP_NAME)'
+                  inputs:
+                    azureSubscription: 'Free Trial(1)(3e3c63cc-eef2-4386-9f86-ea6a77a47519)'
+                    appType: 'functionApp'
+                    appName: 'forpathtesting'
+                    package: '$(Pipeline.Workspace)/drop/$(Build.BuildId).zip'
+                    deploymentMethod: 'auto'

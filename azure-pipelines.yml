@@ -33,7 +33,7 @@ stages:
           # Deploy to Azure Static Web App
           - task: AzureStaticWebApp@0
             inputs:
-              app_location: 'myapp2'  # The folder where your app is located
+              app_location: 'myapp'  # The folder where your app is located
               output_location: 'build'  # The folder where the build output is located
               azure_static_web_apps_api_token: 'a91adb19a7e1f7d199b456f26d55e97080daea25e97e769c527383b6385cfc1d5-46c3b62b-5df6-43ab-bca4-a0cdc8a2b3c300f398616'
             displayName: 'Deploy to Azure Static Web App'
